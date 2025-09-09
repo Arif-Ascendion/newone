@@ -13,9 +13,9 @@ jobs:
     - uses: actions/checkout@v4
     - name: Build The Docker Image
       run: docker build . --file Dockerfile --tag workflow-test:$(date +%s)
+
   build-and-test:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -32,13 +32,11 @@ jobs:
         pip install pytest
 
     - name: Run tests
-      run: |
-        pytest
+      run: pytest
 
   build-and-publish:
     needs: build-and-test
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -53,6 +51,7 @@ jobs:
         password: ${{ secrets.DOCKER_PASSWORD }}
 
     - name: Build and push Docker image
+      id: docker_build   # <-- add ID here
       uses: docker/build-push-action@v4
       with:
         context: .
@@ -61,5 +60,4 @@ jobs:
         tags: ${{ secrets.DOCKER_USERNAME }}/flasktest-app:latest
 
     - name: Image digest
-      run: echo ${{ steps.build-and-publish.outputs.digest }}
-	
+      run: echo ${{ steps.docker_build.outputs.digest }}
